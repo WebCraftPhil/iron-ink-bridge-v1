@@ -1,0 +1,19 @@
+{
+  "mcp": {
+    "contextstream": {
+      "enabled": true,
+      "type": "remote",
+      "url": "https://mcp.contextstream.io/mcp?default_context_mode=fast"
+    },
+    "next-devtools": {
+      "command": [
+        "npx",
+        "-y",
+        "next-devtools-mcp@latest"
+      ],
+      "enabled": true,
+      "environment": {},
+      "type": "local"
+    }
+  }
+}
