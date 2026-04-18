@@ -75,6 +75,20 @@ const mailerAssets = [
   { label: 'Mailer PDF', href: '/docs/Copy of Geoffstown Mailer.pdf', type: 'PDF' },
 ]
 
+const heroStats = [
+  ['5', 'local service offers'],
+  ['1', 'fast lead-capture flow'],
+  ['<1s', 'lightweight mobile-first build target'],
+]
+
+const verifiedBadges = ['Licensed', 'Insured', 'Local']
+
+const serviceSteps = [
+  ['1', 'Tap or scan the QR code.'],
+  ['2', 'Pick the service and open the offer modal.'],
+  ['3', 'Submit your contact info or text the offer instantly.'],
+]
+
 function parseUrlParams(search = '') {
   const params = new URLSearchParams(search)
 
@@ -384,7 +398,12 @@ function App() {
         <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6 lg:px-8 lg:pb-14">
           <div className="flex items-center justify-between gap-3">
             <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200">
-              <span className="grid h-7 w-7 place-items-center rounded-md border border-blue-300/40 bg-blue-500/10 text-blue-300">✣</span>
+              <span
+                aria-hidden="true"
+                className="grid h-7 w-7 place-items-center rounded-md border border-blue-300/40 bg-blue-500/10 text-blue-300"
+              >
+                ✣
+              </span>
               <span className="hidden sm:inline">Exclusive {town} Homeowner Savings</span>
               <span className="sm:hidden">Exclusive {town}</span>
             </div>
@@ -430,11 +449,7 @@ function App() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              {[
-                ['5', 'local service offers'],
-                ['1', 'fast lead-capture flow'],
-                ['<1s', 'lightweight mobile-first build target'],
-              ].map(([value, label]) => (
+              {heroStats.map(([value, label]) => (
                 <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur">
                   <div className="text-2xl font-bold text-white">{value}</div>
                   <div className="mt-1 text-sm text-slate-300">{label}</div>
@@ -459,13 +474,26 @@ function App() {
               return (
                 <article
                   key={offer.id}
+                  aria-label={`${offer.business} offer${isSelected ? ', selected' : ''}`}
                   className={`rounded-2xl border bg-white/[0.03] p-5 shadow-2xl transition-transform duration-300 hover:-translate-y-1 sm:p-6 ${
                     isSelected ? 'border-blue-400/80 ring-1 ring-blue-300/60' : 'border-white/10'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="grid h-9 w-9 place-items-center rounded-md bg-white/10 text-sm text-blue-200">⚡</span>
-                    <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200">{offer.highlight}</span>
+                    <span
+                      aria-hidden="true"
+                      className="grid h-9 w-9 place-items-center rounded-md bg-white/10 text-sm text-blue-200"
+                    >
+                      ⚡
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {isSelected ? (
+                        <span className="rounded-full border border-blue-300/60 bg-blue-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-100">
+                          Selected
+                        </span>
+                      ) : null}
+                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200">{offer.highlight}</span>
+                    </div>
                   </div>
 
                   <p className="mt-5 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">{offer.category}</p>
@@ -478,9 +506,9 @@ function App() {
                     <button
                       type="button"
                       onClick={() => openLeadModal(offer)}
-                      className="inline-flex items-center justify-center rounded-lg bg-black/70 px-4 py-3 text-sm font-semibold text-blue-100 transition hover:bg-black/90"
+                      className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-blue-300 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:from-blue-400 hover:to-blue-200"
                     >
-                      Claim Offer ⚡
+                      Claim Offer <span aria-hidden="true">&nbsp;⚡</span>
                     </button>
                     <a
                       href={smsText(offer)}
@@ -501,9 +529,11 @@ function App() {
             Every partner is vetted for architectural compliance and local standing.
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            {['Licensed', 'Insured', 'Local'].map((label) => (
+            {verifiedBadges.map((label) => (
               <div key={label} className="rounded-lg border border-white/10 bg-black/30 p-3 text-center">
-                <div className="mx-auto grid h-9 w-9 place-items-center rounded-full bg-white/10 text-sm text-blue-200">✓</div>
+                <div aria-hidden="true" className="mx-auto grid h-9 w-9 place-items-center rounded-full bg-white/10 text-sm text-blue-200">
+                  ✓
+                </div>
                 <div className="mt-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-200">{label}</div>
               </div>
             ))}
@@ -511,11 +541,7 @@ function App() {
         </section>
 
         <section className="mt-10 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 lg:grid-cols-3">
-          {[
-            ['1', 'Tap or scan the QR code.'],
-            ['2', 'Pick the service and open the offer modal.'],
-            ['3', 'Submit your contact info or text the offer instantly.'],
-          ].map(([step, copy]) => (
+          {serviceSteps.map(([step, copy]) => (
             <div key={step} className="rounded-lg border border-white/10 bg-black/30 p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">Step {step}</div>
               <p className="mt-2 text-sm leading-7 text-slate-200">{copy}</p>
