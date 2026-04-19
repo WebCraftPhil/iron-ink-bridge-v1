@@ -49,7 +49,7 @@ export default function AdminAuthGate({ children }) {
       setError(
         demoPasswordEnabled
           ? ''
-          : 'Supabase is not configured yet. Add the public URL and anon key to your environment.',
+          : 'Supabase is not configured yet. Add the public URL and publishable key to your environment.',
       )
       setLoading(false)
       return undefined
@@ -175,7 +175,7 @@ export default function AdminAuthGate({ children }) {
             </p>
             <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-950">
               Add <code className="rounded bg-white px-1 py-0.5">VITE_SUPABASE_URL</code>,
-              <code className="rounded bg-white px-1 py-0.5">VITE_SUPABASE_ANON_KEY</code>, and
+              <code className="rounded bg-white px-1 py-0.5">VITE_SUPABASE_PUBLISHABLE_KEY</code>, and
               <code className="rounded bg-white px-1 py-0.5">VITE_ADMIN_EMAILS</code> before testing sign in.
             </div>
           </div>
