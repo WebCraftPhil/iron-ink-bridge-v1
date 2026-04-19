@@ -33,6 +33,13 @@ export default function MaintenanceCalculator({
   const [climate, setClimate] = useState('mixed')
   const [priority, setPriority] = useState('balanced')
 
+  const resetCalculator = () => {
+    setHomeValue(initialHomeValue)
+    setHomeAge(initialHomeAge)
+    setClimate('mixed')
+    setPriority('balanced')
+  }
+
   const currentClimate = climateOptions.find((option) => option.value === climate) ?? climateOptions[1]
   const currentPriority = priorityOptions.find((option) => option.value === priority) ?? priorityOptions[1]
 
@@ -59,14 +66,23 @@ export default function MaintenanceCalculator({
     homeAge < 10 ? 'Newer home' : homeAge < 25 ? 'Established home' : homeAge < 40 ? 'Older home' : 'High-maintenance home'
 
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.08] p-5 shadow-[0_30px_80px_-40px_rgba(11,18,32,0.85)] backdrop-blur-xl sm:p-6 lg:p-8">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.18),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.14),transparent_36%)]" />
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-[0_30px_80px_-40px_rgba(11,18,32,0.85)] backdrop-blur-xl backdrop-saturate-150 sm:p-6 lg:p-8">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.22),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_55%)]" />
       <div className="absolute inset-px rounded-[2rem] border border-white/10" />
 
       <div className="relative grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-blue-100">
-            Maintenance calculator
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-blue-100">
+              Maintenance calculator
+            </div>
+            <button
+              type="button"
+              onClick={resetCalculator}
+              className="rounded-full border border-white/15 bg-white/8 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-white/25 hover:bg-white/12"
+            >
+              Reset
+            </button>
           </div>
 
           <div>
@@ -148,7 +164,7 @@ export default function MaintenanceCalculator({
         </div>
 
         <div className="relative">
-          <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/35 p-5 shadow-panel backdrop-blur-md sm:p-6">
+          <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/40 p-5 shadow-panel backdrop-blur-md sm:p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Estimated budget</p>
@@ -161,11 +177,10 @@ export default function MaintenanceCalculator({
               </div>
             </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {[
                 { label: 'Exterior', value: estimate.exterior, accent: 'from-cyan-300/25 to-cyan-300/5' },
                 { label: 'Systems', value: estimate.systems, accent: 'from-blue-300/25 to-blue-300/5' },
-                { label: 'Emergency buffer', value: estimate.emergency, accent: 'from-violet-300/20 to-violet-300/5' },
                 { label: 'Interior reserve', value: estimate.interiors, accent: 'from-slate-200/20 to-slate-200/5' },
               ].map((item) => (
                 <div key={item.label} className={`rounded-2xl border border-white/10 bg-gradient-to-b ${item.accent} p-4`}>

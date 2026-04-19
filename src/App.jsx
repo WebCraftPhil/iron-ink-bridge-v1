@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import AdminAuthGate from './components/AdminAuthGate'
 import MaintenanceCalculator from './components/MaintenanceCalculator'
+import ClientScanDashboard from './components/ClientScanDashboard'
 
 const defaultTown = 'Goffstown'
 const campaignPhone = '16036986286'
 const campaignDial = '+16036986286'
-const claimsStorageKey = 'iron-ink-bridge:claims'
 const adminPath = '/admin'
 
 const offers = [
@@ -98,6 +99,7 @@ function parseUrlParams(search = '') {
     vendor: params.get('vendor')?.trim() ?? '',
     id: params.get('id')?.trim() ?? '',
     town: params.get('town')?.trim() ?? '',
+    ref: params.get('ref')?.trim() ?? '',
   }
 }
 
@@ -142,79 +144,12 @@ function getInitialTown() {
   return town || defaultTown
 }
 
-function readClaims() {
-  if (typeof window === 'undefined') {
-    return []
-  }
-
-  try {
-    const raw = window.localStorage.getItem(claimsStorageKey)
-    const parsed = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
-function writeClaims(claims) {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  window.localStorage.setItem(claimsStorageKey, JSON.stringify(claims))
-}
-
-function seedClaimsIfNeeded() {
-  const currentClaims = readClaims()
-
-  if (currentClaims.length > 0) {
-    return currentClaims
-  }
-
-  const seededClaims = [
-    {
-      id: 'claim-1001',
-      vendor: 'NHElectrical',
-      offerId: 'electrical',
-      business: 'NH Electrical Services',
-      leadName: 'Jordan Miller',
-      phone: '(603) 555-0114',
-      address: '18 Maple Street',
-      email: 'jordan@example.com',
-      source: 'QR code',
-      qrId: 'lead-418-a',
-      createdAt: new Date(Date.now() - 1000 * 60 * 48).toISOString(),
-    },
-    {
-      id: 'claim-1002',
-      vendor: 'NHRoofSolutions',
-      offerId: 'roof',
-      business: 'NH Roof Solutions',
-      leadName: 'Avery Stone',
-      phone: '(603) 555-0188',
-      address: '9 Birch Lane',
-      email: 'avery@example.com',
-      source: 'Landing page',
-      qrId: 'lead-418-b',
-      createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    },
-  ]
-
-  writeClaims(seededClaims)
-  return seededClaims
-}
-
-function formatClaimTime(value) {
-  try {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(new Date(value))
-  } catch {
-    return value
-  }
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(value)
 }
 
 function buildMessage(offer, town) {
@@ -234,19 +169,21 @@ function App() {
   const [location, setLocation] = useState(getWindowLocation)
   const [town, setTown] = useState(getInitialTown)
   const [activeOffer, setActiveOffer] = useState(null)
+  const [leadContext, setLeadContext] = useState(null)
   const [submitted, setSubmitted] = useState(false)
-  const [claims, setClaims] = useState(() => (typeof window === 'undefined' ? [] : readClaims()))
   const offerRefs = useRef({})
   const [form, setForm] = useState({
     name: '',
     phone: '',
     email: '',
     address: '',
+    notes: '',
   })
 
   const searchParams = useSearchParams()
   const params = useMemo(() => parseUrlParams(`?${searchParams.toString()}`), [searchParams])
   const isAdminView = location.pathname === adminPath
+  const isInformedDeliveryRef = params.ref.toLowerCase() === 'informed-delivery'
 
   useEffect(() => {
     const handlePopState = () => {
@@ -259,19 +196,14 @@ function App() {
   }, [])
 
   useEffect(() => {
-    document.title = isAdminView ? 'Lead Dashboard' : `${town} Homeowner Savings`
+    document.title = isAdminView ? 'Client Scan Dashboard | Private Preview' : `${town} Homeowner Savings`
   }, [isAdminView, town])
-
-  useEffect(() => {
-    if (isAdminView) {
-      setClaims(seedClaimsIfNeeded())
-    }
-  }, [isAdminView])
 
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         setActiveOffer(null)
+        setLeadContext(null)
         setSubmitted(false)
       }
     }
@@ -309,7 +241,46 @@ function App() {
 
   const openLeadModal = (offer) => {
     setSubmitted(false)
+    setLeadContext(null)
+    setForm({
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      notes: '',
+    })
     setActiveOffer(offer)
+  }
+
+  const openMaintenanceLead = ({ homeValue, homeAge, climate, priority, estimate }) => {
+    setSubmitted(false)
+    setLeadContext({
+      type: 'maintenance',
+      homeValue,
+      homeAge,
+      climate,
+      priority,
+      estimate,
+    })
+    setForm({
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      notes: `Maintenance plan request for a ${formatCurrency(homeValue)} home, ${homeAge} years old. Climate: ${climate}. Style: ${priority}. Estimated annual reserve: ${formatCurrency(estimate.annual)}.`,
+    })
+    setActiveOffer({
+      id: 'maintenance-plan',
+      vendor: 'MaintenancePlanner',
+      business: 'Maintenance Plan Review',
+      category: 'Budget planning',
+      headline: `Review a ${formatCurrency(estimate.annual)} annual reserve`,
+      description:
+        'Turn this estimate into a seasonal maintenance plan, a service schedule, or a quote for the work you want to prioritize next.',
+      proof: `About ${formatCurrency(estimate.monthly)} per month keeps the reserve on track.`,
+      accent: 'from-cyan-700 to-blue-900',
+      highlight: 'Estimate to action',
+    })
   }
 
   const handleLeadSubmit = (event) => {
@@ -318,151 +289,46 @@ function App() {
     if (!activeOffer) {
       return
     }
-
-    const nextClaim = {
-      id: `claim-${Date.now()}`,
-      vendor: activeOffer.vendor,
-      offerId: activeOffer.id,
-      business: activeOffer.business,
-      leadName: form.name,
-      phone: form.phone,
-      address: form.address,
-      email: form.email,
-      source: 'Landing page',
-      qrId: params.id,
-      createdAt: new Date().toISOString(),
-    }
-
-    const nextClaims = [nextClaim, ...readClaims()].slice(0, 20)
-    writeClaims(nextClaims)
-    setClaims(nextClaims)
     setSubmitted(true)
   }
 
   const navLink = isAdminView ? '/' : adminPath
-  const navLabel = isAdminView ? 'Back to offers' : 'Lead Dashboard'
 
   if (isAdminView) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#f5f9ff_0%,#ffffff_55%,#edf5ff_100%)] text-ink-950">
-        <header className="relative overflow-hidden border-b border-ink-100 bg-ink-950 text-white">
-          <div className="absolute inset-0 bg-hero-grid bg-[length:22px_22px] opacity-20" />
-          <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between gap-4">
-              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-blue-100">
-                Lead Dashboard
-              </div>
-              <a
-                href={navLink}
-                className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/14"
-              >
-                {navLabel}
-              </a>
-            </div>
-
-            <div className="max-w-3xl space-y-4">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-blue-200">Recent claims stored in local storage</p>
-              <h1 className="font-display text-4xl leading-tight sm:text-5xl lg:text-6xl">
-                Monitor new claims without needing a backend yet.
-              </h1>
-              <p className="max-w-2xl text-base leading-7 text-blue-100 sm:text-lg">
-                This is a lightweight mock dashboard for reviewing leads captured from QR scans and landing-page submissions.
-              </p>
-            </div>
-          </div>
-        </header>
-
-        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-          <section className="grid gap-4 sm:grid-cols-3">
-            {[
-              [String(claims.length), 'total claims in the queue'],
-              [campaignPhone, 'callback number'],
-              [params.id || 'no id param', 'current QR context'],
-            ].map(([value, label]) => (
-              <div key={label} className="rounded-3xl border border-ink-100 bg-white p-5 shadow-panel">
-                <div className="text-2xl font-bold text-ink-950">{value}</div>
-                <div className="mt-1 text-sm text-ink-600">{label}</div>
-              </div>
-            ))}
-          </section>
-
-          <section className="mt-10 rounded-3xl border border-ink-100 bg-white p-5 shadow-panel sm:p-6">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-ink-600">Recent claims</p>
-                <h2 className="mt-2 font-display text-2xl text-ink-950 sm:text-3xl">Latest mock leads from local storage</h2>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-4">
-              {claims.length > 0 ? (
-                claims.map((claim) => (
-                  <article key={claim.id} className="rounded-2xl border border-ink-200 bg-ink-50 p-4 sm:p-5">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-ink-500">
-                          {claim.business}
-                        </p>
-                        <h3 className="mt-2 text-lg font-semibold text-ink-950">{claim.leadName}</h3>
-                        <p className="mt-1 text-sm text-ink-700">
-                          {claim.address} · {claim.phone}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                        <span className="rounded-full bg-white px-3 py-1 text-ink-700">{claim.source}</span>
-                        <span className="rounded-full bg-white px-3 py-1 text-ink-700">{formatClaimTime(claim.createdAt)}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-2 text-sm text-ink-700 sm:grid-cols-2">
-                      <div>
-                        <span className="font-semibold text-ink-900">Vendor:</span> {claim.vendor}
-                      </div>
-                      <div>
-                        <span className="font-semibold text-ink-900">QR id:</span> {claim.qrId || 'n/a'}
-                      </div>
-                      <div>
-                        <span className="font-semibold text-ink-900">Email:</span> {claim.email || 'n/a'}
-                      </div>
-                      <div>
-                        <span className="font-semibold text-ink-900">Offer:</span> {claim.offerId}
-                      </div>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-dashed border-ink-200 bg-ink-50 p-6 text-sm text-ink-700">
-                  No claims yet. Submit an offer on the landing page to populate this dashboard.
-                </div>
-              )}
-            </div>
-          </section>
-        </main>
-      </div>
+      <AdminAuthGate>
+        <ClientScanDashboard onBackHref={navLink} />
+      </AdminAuthGate>
     )
   }
 
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100">
+      {isInformedDeliveryRef ? (
+        <div className="border-b border-emerald-400/20 bg-emerald-500/15 text-emerald-50">
+          <div className="mx-auto w-full max-w-6xl px-4 py-3 text-sm font-semibold sm:px-6 lg:px-8">
+            Welcome Informed Delivery User! Your 1% Bonus Discount has been applied.
+          </div>
+        </div>
+      ) : null}
+
       <header className="border-b border-white/10 bg-[radial-gradient(circle_at_top_left,#17223a_0%,#070b14_42%,#060910_100%)]">
         <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6 lg:px-8 lg:pb-14">
           <div className="flex items-center justify-between gap-3">
             <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200">
               <span
                 aria-hidden="true"
-                className="grid h-7 w-7 place-items-center rounded-md border border-blue-300/40 bg-blue-500/10 text-blue-300"
+                className="grid h-8 w-8 place-items-center rounded-md border border-white/15 bg-white p-1 shadow-[0_10px_24px_-18px_rgba(255,255,255,0.9)]"
               >
-                ✣
+                <img
+                  src="/iron-ink-logo.png"
+                  alt=""
+                  className="h-full w-full object-contain"
+                />
               </span>
               <span className="hidden sm:inline">Exclusive {town} Homeowner Savings</span>
               <span className="sm:hidden">Exclusive {town}</span>
             </div>
-            <a
-              href={navLink}
-              className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:bg-white/10 sm:text-sm"
-            >
-              {navLabel}
-            </a>
           </div>
 
           <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1.1fr_0.9fr]">
@@ -521,7 +387,7 @@ function App() {
               Use this as a quick budget check before a seasonal project, repair backlog, or annual tune-up.
             </p>
           </div>
-          <MaintenanceCalculator />
+          <MaintenanceCalculator onRequestQuote={openMaintenanceLead} />
         </section>
 
         <section id="offers" className="space-y-5">
@@ -676,7 +542,10 @@ function App() {
                 <button
                   type="button"
                   aria-label="Close modal"
-                  onClick={() => setActiveOffer(null)}
+                  onClick={() => {
+                    setActiveOffer(null)
+                    setLeadContext(null)
+                  }}
                   className="rounded-full border border-ink-200 px-3 py-1 text-sm font-semibold text-ink-700 transition hover:bg-ink-50"
                 >
                   Close
@@ -689,6 +558,26 @@ function App() {
                 </div>
               ) : (
                 <form className="mt-6 grid gap-4" onSubmit={handleLeadSubmit}>
+                  {leadContext?.type === 'maintenance' ? (
+                    <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-950">
+                      <p className="font-semibold">Maintenance estimate summary</p>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <div>
+                          <span className="font-semibold">Annual reserve:</span> {formatCurrency(leadContext.estimate.annual)}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Monthly target:</span> {formatCurrency(leadContext.estimate.monthly)}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Climate:</span> {leadContext.climate}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Priority:</span> {leadContext.priority}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="grid gap-2 text-sm font-medium text-ink-800">
                       Full Name
@@ -734,16 +623,30 @@ function App() {
                     />
                   </label>
 
+                  <label className="grid gap-2 text-sm font-medium text-ink-800">
+                    Notes
+                    <textarea
+                      rows="4"
+                      value={form.notes}
+                      onChange={(event) => setForm({ ...form, notes: event.target.value })}
+                      className="rounded-2xl border border-ink-200 px-4 py-3 outline-none transition focus:border-ink-500"
+                      placeholder="Tell us what work you want to tackle first."
+                    />
+                  </label>
+
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <button
                       type="submit"
                       className="inline-flex items-center justify-center rounded-full bg-ink-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink-800"
                     >
-                      Submit Offer Request
+                      {leadContext?.type === 'maintenance' ? 'Request My Maintenance Plan' : 'Submit Offer Request'}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActiveOffer(null)}
+                      onClick={() => {
+                        setActiveOffer(null)
+                        setLeadContext(null)
+                      }}
                       className="inline-flex items-center justify-center rounded-full border border-ink-200 px-5 py-3 text-sm font-semibold text-ink-800 transition hover:bg-ink-50"
                     >
                       Not Now
