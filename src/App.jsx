@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const defaultTown = 'Goffstown'
 const campaignPhone = '16036986286'
@@ -22,6 +22,7 @@ const offers = [
   {
     id: 'electrical',
     vendor: 'NHElectrical',
+    vendorSlug: 'nh-electrical',
     business: 'NH Electrical Services',
     category: 'Home safety upgrade',
     headline: 'Free safety check with any repair',
@@ -97,6 +98,27 @@ function parseUrlParams(search = '') {
     id: params.get('id')?.trim() ?? '',
     town: params.get('town')?.trim() ?? '',
   }
+}
+
+function useSearchParams() {
+  const [search, setSearch] = useState(() => {
+    if (typeof window === 'undefined') {
+      return ''
+    }
+
+    return window.location.search
+  })
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setSearch(window.location.search)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  return useMemo(() => new URLSearchParams(search), [search])
 }
 
 function getWindowLocation() {
@@ -199,7 +221,10 @@ function buildMessage(offer, town) {
 }
 
 function getOfferMatch(offer, params) {
-  const vendorMatch = params.vendor.toLowerCase() === offer.vendor.toLowerCase()
+  const normalizedVendor = params.vendor.toLowerCase()
+  const vendorMatch =
+    normalizedVendor === offer.vendor.toLowerCase() ||
+    normalizedVendor === (offer.vendorSlug ?? '').toLowerCase()
   const idMatch = params.id.toLowerCase() === offer.id.toLowerCase()
   return vendorMatch || idMatch
 }
@@ -210,6 +235,7 @@ function App() {
   const [activeOffer, setActiveOffer] = useState(null)
   const [submitted, setSubmitted] = useState(false)
   const [claims, setClaims] = useState(() => (typeof window === 'undefined' ? [] : readClaims()))
+  const offerRefs = useRef({})
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -217,7 +243,8 @@ function App() {
     address: '',
   })
 
-  const params = useMemo(() => parseUrlParams(location.search), [location.search])
+  const searchParams = useSearchParams()
+  const params = useMemo(() => parseUrlParams(`?${searchParams.toString()}`), [searchParams])
   const isAdminView = location.pathname === adminPath
 
   useEffect(() => {
@@ -254,6 +281,28 @@ function App() {
 
   const heroMessage = useMemo(() => `A local savings page made for ${town} homeowners`, [town])
   const highlightedOffer = offers.find((offer) => getOfferMatch(offer, params)) ?? null
+
+  useEffect(() => {
+    if (!highlightedOffer) {
+      return
+    }
+
+    const target = offerRefs.current[highlightedOffer.id]
+
+    if (!target) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      })
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [highlightedOffer?.id])
 
   const smsText = (offer) => `sms:?&body=${encodeURIComponent(buildMessage(offer, town))}`
 
@@ -470,13 +519,24 @@ function App() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {offers.map((offer) => {
               const isSelected = highlightedOffer?.id === offer.id
+              const isVerifiedQr = isSelected && params.vendor.toLowerCase() === 'nh-electrical'
 
               return (
                 <article
                   key={offer.id}
                   aria-label={`${offer.business} offer${isSelected ? ', selected' : ''}`}
+                  ref={(node) => {
+                    if (node) {
+                      offerRefs.current[offer.id] = node
+                      return
+                    }
+
+                    delete offerRefs.current[offer.id]
+                  }}
                   className={`rounded-2xl border bg-white/[0.03] p-5 shadow-2xl transition-transform duration-300 hover:-translate-y-1 sm:p-6 ${
-                    isSelected ? 'border-blue-400/80 ring-1 ring-blue-300/60' : 'border-white/10'
+                    isSelected
+                      ? 'border-cyan-300/80 ring-2 ring-cyan-300/60 shadow-[0_0_0_1px_rgba(34,211,238,0.18),0_0_36px_rgba(34,211,238,0.22)]'
+                      : 'border-white/10'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -488,8 +548,8 @@ function App() {
                     </span>
                     <div className="flex items-center gap-2">
                       {isSelected ? (
-                        <span className="rounded-full border border-blue-300/60 bg-blue-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-100">
-                          Selected
+                        <span className="rounded-full border border-cyan-300/60 bg-cyan-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100">
+                          {isVerifiedQr ? 'Verified QR Scan' : 'Selected'}
                         </span>
                       ) : null}
                       <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200">{offer.highlight}</span>
