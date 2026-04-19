@@ -66,7 +66,7 @@ export default function MaintenanceCalculator({
     homeAge < 10 ? 'Newer home' : homeAge < 25 ? 'Established home' : homeAge < 40 ? 'Older home' : 'High-maintenance home'
 
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-[0_30px_80px_-40px_rgba(11,18,32,0.85)] backdrop-blur-xl backdrop-saturate-150 sm:p-6 lg:p-8">
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.07] p-4 shadow-[0_30px_80px_-40px_rgba(11,18,32,0.85)] backdrop-blur-xl backdrop-saturate-150 sm:p-6 lg:p-8">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.22),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(96,165,250,0.18),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_55%)]" />
       <div className="absolute inset-px rounded-[2rem] border border-white/10" />
 
@@ -87,7 +87,7 @@ export default function MaintenanceCalculator({
 
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-blue-200/80">Glassmorphism estimator</p>
-            <h2 className="mt-3 font-display text-3xl leading-tight text-white sm:text-4xl">
+            <h2 className="mt-3 font-display text-2xl leading-tight text-white sm:text-4xl">
               Estimate a realistic annual maintenance budget before the small fixes become expensive.
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
@@ -164,14 +164,14 @@ export default function MaintenanceCalculator({
         </div>
 
         <div className="relative">
-          <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/40 p-5 shadow-panel backdrop-blur-md sm:p-6">
-            <div className="flex items-center justify-between gap-4">
+          <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/40 p-4 shadow-panel backdrop-blur-md sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Estimated budget</p>
-                <div className="mt-2 text-4xl font-semibold text-white sm:text-5xl">{formatCurrency(estimate.annual)}</div>
+                <div className="mt-2 text-3xl font-semibold text-white sm:text-5xl">{formatCurrency(estimate.annual)}</div>
                 <p className="mt-2 text-sm text-slate-300">About {formatCurrency(estimate.monthly)} per month</p>
               </div>
-              <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 px-4 py-3 text-right">
+              <div className="w-fit rounded-2xl border border-cyan-300/20 bg-cyan-400/10 px-4 py-3 text-right">
                 <div className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Risk level</div>
                 <div className="mt-1 text-lg font-semibold text-white">Moderate</div>
               </div>

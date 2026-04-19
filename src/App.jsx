@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import AdminAuthGate from './components/AdminAuthGate'
+import FAQ from './components/FAQ'
 import MaintenanceCalculator from './components/MaintenanceCalculator'
 import ClientScanDashboard from './components/ClientScanDashboard'
 
@@ -329,6 +330,14 @@ function App() {
               <span className="hidden sm:inline">Exclusive {town} Homeowner Savings</span>
               <span className="sm:hidden">Exclusive {town}</span>
             </div>
+            <a
+              href="https://www.ironandinkdigital.com/"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300 transition hover:border-cyan-300/40 hover:bg-white/10 hover:text-cyan-100"
+            >
+              Iron &amp; Ink Digital
+            </a>
           </div>
 
           <div className="mt-10 grid items-start gap-8 lg:grid-cols-[1.1fr_0.9fr]">
@@ -512,11 +521,27 @@ function App() {
             ))}
           </div>
         </section>
+
+        <section className="mt-10">
+          <FAQ />
+        </section>
       </main>
 
       <footer className="border-t border-white/10 bg-black/30">
         <div className="mx-auto max-w-6xl px-4 py-8 text-sm text-slate-300 sm:px-6 lg:px-8">
-          Designed for local mailer tracking, simple lead capture, and fast mobile conversion.
+          <p>Designed for local mailer tracking, simple lead capture, and fast mobile conversion.</p>
+          <p className="mt-2 text-slate-400">
+            Built by{' '}
+            <a
+              href="https://www.ironandinkdigital.com/"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="font-semibold text-cyan-200 transition hover:text-cyan-100"
+            >
+              Iron &amp; Ink Digital
+            </a>
+            .
+          </p>
         </div>
       </footer>
 
