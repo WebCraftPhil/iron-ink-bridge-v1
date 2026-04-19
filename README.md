@@ -12,10 +12,10 @@ Single-page React + Tailwind sample site for the Goffstown Homeowner Savings mai
 
 The private `/admin` route uses Supabase Auth with Google sign-in.
 
-1. Copy `.env.example` to `.env.local`
-2. Fill in `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_ADMIN_REDIRECT_URL`, and `VITE_ADMIN_EMAILS`
+1. Copy `.env.example` to `.env`
+2. Fill in `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_ADMIN_EMAILS`
 3. Optionally set `VITE_ADMIN_PASSWORD` for a demo-only fallback unlock. Do not treat this as real security because it ships in the client bundle.
-4. In Supabase, enable the Google provider and add the exact admin callback URL you use locally and in production to the OAuth redirect allow list. For this repo, that means `http://127.0.0.1:5173/admin` during local development, plus your production `/admin` URL.
+4. In Supabase, enable the Google provider and add the exact admin callback URL you use locally and in production to the OAuth redirect allow list. For this repo, that means `http://127.0.0.1:5173/admin` or `http://localhost:5173/admin` during local development, plus your production `/admin` URL.
 5. In Google Cloud, set the OAuth redirect URI to `https://ggxwgfgzferwholfkqaj.supabase.co/auth/v1/callback` for this project.
 6. Visit `/admin` and sign in with one of the allowlisted email addresses, or use the demo password if you enabled it
 

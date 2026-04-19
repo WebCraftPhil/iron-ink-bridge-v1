@@ -11,12 +11,6 @@ function parseAllowedEmails(rawValue) {
 }
 
 function getRedirectUrl() {
-  const explicitRedirect = import.meta.env.VITE_ADMIN_REDIRECT_URL?.trim()
-
-  if (explicitRedirect) {
-    return explicitRedirect
-  }
-
   if (typeof window === 'undefined') {
     return undefined
   }
