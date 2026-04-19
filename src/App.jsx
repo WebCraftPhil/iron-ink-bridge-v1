@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import MaintenanceCalculator from './components/MaintenanceCalculator'
 
 const defaultTown = 'Goffstown'
 const campaignPhone = '16036986286'
@@ -510,6 +511,19 @@ function App() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+        <section className="mb-10">
+          <div className="mb-4 max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Planning tool</p>
+            <h2 className="mt-2 font-display text-2xl text-white sm:text-3xl">
+              Estimate what it costs to stay ahead of home maintenance.
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-300">
+              Use this as a quick budget check before a seasonal project, repair backlog, or annual tune-up.
+            </p>
+          </div>
+          <MaintenanceCalculator />
+        </section>
+
         <section id="offers" className="space-y-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Core disciplines</p>

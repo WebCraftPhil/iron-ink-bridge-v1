@@ -1,5 +1,24 @@
 {
   "mcpServers": {
+    "contextstream": {
+      "type": "http",
+      "url": "https://mcp.contextstream.io/mcp?default_context_mode=fast",
+      "headers": {
+        "X-ContextStream-API-Key": "cbiq_z7J2QmiYZiLcvc3SBO6SdFA7c8JeKXNfrAKE2yS3aIE",
+        "X-ContextStream-Auto-Hide-Integrations": "true",
+        "X-ContextStream-Consolidated": "true",
+        "X-ContextStream-Context-Pack-Enabled": "true",
+        "X-ContextStream-Hook-Transcripts-Enabled": "true",
+        "X-ContextStream-Output-Format": "compact",
+        "X-ContextStream-Progressive-Mode": "false",
+        "X-ContextStream-Router-Mode": "false",
+        "X-ContextStream-Search-Limit": "15",
+        "X-ContextStream-Search-Max-Chars": "2400",
+        "X-ContextStream-Toolset": "complete",
+        "X-ContextStream-Transcripts-Enabled": "true",
+        "X-ContextStream-Workspace-Id": "bba80cac-dbba-4bba-8bb3-ca7b3945d4aa"
+      }
+    },
     "next-devtools": {
       "command": "npx",
       "args": [
