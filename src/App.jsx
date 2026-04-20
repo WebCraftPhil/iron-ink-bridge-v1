@@ -8,6 +8,7 @@ const defaultTown = 'Goffstown'
 const campaignPhone = '16036986286'
 const campaignDial = '+16036986286'
 const adminPath = '/admin'
+const siteBaseUrl = import.meta.env.VITE_SITE_URL?.replace(/\/$/, '') ?? ''
 
 const offers = [
   {
@@ -166,6 +167,24 @@ function getOfferMatch(offer, params) {
   return vendorMatch || idMatch
 }
 
+function setHeadMeta(selector, content) {
+  const element = document.head.querySelector(selector)
+
+  if (!element) {
+    return
+  }
+
+  element.setAttribute('content', content)
+}
+
+function setCanonicalUrl(href) {
+  const canonicalLink = document.head.querySelector('link[rel="canonical"]')
+
+  if (canonicalLink) {
+    canonicalLink.setAttribute('href', href)
+  }
+}
+
 function App() {
   const [location, setLocation] = useState(getWindowLocation)
   const [town, setTown] = useState(getInitialTown)
@@ -199,6 +218,39 @@ function App() {
   useEffect(() => {
     document.title = isAdminView ? 'Client Scan Dashboard | Private Preview' : `${town} Homeowner Savings`
   }, [isAdminView, town])
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return
+    }
+
+    const currentUrl = window.location.href
+
+    if (isAdminView) {
+      setHeadMeta('meta[name="robots"]', 'noindex, nofollow')
+      setHeadMeta('meta[property="og:url"]', currentUrl)
+      setHeadMeta('meta[name="twitter:url"]', currentUrl)
+      setCanonicalUrl(currentUrl)
+      return
+    }
+
+    const shareUrl = siteBaseUrl ? `${siteBaseUrl}${window.location.pathname}${window.location.search}` : currentUrl
+
+    setHeadMeta('meta[name="robots"]', 'index, follow')
+    setHeadMeta('meta[property="og:title"]', `${town} Homeowner Savings`)
+    setHeadMeta(
+      'meta[property="og:description"]',
+      `A mobile-first local coupon mailer landing page with five trusted home service offers in ${town}.`,
+    )
+    setHeadMeta('meta[property="og:url"]', shareUrl)
+    setHeadMeta('meta[name="twitter:title"]', `${town} Homeowner Savings`)
+    setHeadMeta(
+      'meta[name="twitter:description"]',
+      `A mobile-first local coupon mailer landing page with five trusted home service offers in ${town}.`,
+    )
+    setHeadMeta('meta[name="twitter:url"]', shareUrl)
+    setCanonicalUrl(shareUrl)
+  }, [isAdminView, town, location.pathname, location.search])
 
   useEffect(() => {
     const onKeyDown = (event) => {
